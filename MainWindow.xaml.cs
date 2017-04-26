@@ -89,8 +89,8 @@ namespace GameOfLife
             mundo[503, 509] = true; mundo[504, 509] = true; mundo[501, 510] = true; mundo[502, 510] = true; mundo[503, 510] = true; mundo[502, 511] = true;
 
             //gliders
-            //mundos[500, 500] = true; mundos[501, 500] = true; mundos[501, 502] = true; mundos[502, 500] = true; mundos[502, 501] = true;
-            //mundos[990, 990] = true; mundos[991, 990] = true; mundos[991, 992] = true; mundos[992, 990] = true; mundos[992, 991] = true;
+            //mundo[500, 500] = true; mundo[501, 500] = true; mundo[501, 502] = true; mundo[502, 500] = true; mundo[502, 501] = true;
+            //mundo[990, 990] = true; mundo[991, 990] = true; mundo[991, 992] = true; mundo[992, 990] = true; mundo[992, 991] = true;
 
             //populate blessed
             for (UInt16 i = 0; i < 1000; i++)
@@ -125,6 +125,9 @@ namespace GameOfLife
             // Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
             // Any live cell with two or three live neighbours lives on to the next generation.
             // Any live cell with more than three live neighbours dies, as if by overpopulation.
+            // 4/26 Account for toroidal wrap around and use HashSet to filter duplicates
+            // HashSet for checking which unique empty cells should become alive
+            var potentials = new HashSet<CellPos>();
             List<CellPos> nuBlessd = new List<CellPos>();
             List<CellPos> doomed = new List<CellPos>();
             foreach (CellPos p in L.Cells)
@@ -149,14 +152,8 @@ namespace GameOfLife
                 {
                     doomed.Add(p);
                 }
-            }
 
-            // 4/26 Account for toroidal wrap around and use HashSet to filter duplicates
-            // HashSet for checking which unique empty cells should become alive
-            var potentials = new HashSet<CellPos>();
-            foreach (CellPos p in L.Cells)
-            {
-                //check a 3x3 grid around each cell around p to build the HashSet
+                //check a 3x3 grid around each cell around p to build the HashSet of empty cells
                 int iwrap = 0;
                 for (int i = (p.X - 1) % 1000; iwrap < 3; i++)
                 {
@@ -174,7 +171,7 @@ namespace GameOfLife
                     iwrap++;
                 }
             }
-
+            
             //for each CellPos in potentials, 
             foreach (CellPos p in potentials)
             {
@@ -193,53 +190,7 @@ namespace GameOfLife
                     nuBlessd.Add(p);
                 }
             }
-
-            // 4/17 Need to account for toroidal wrap around. 
-            // The window size would be stupidly large if I had true cells in opposite corners of the grid.
-            // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-            // for every false/dead cell in a NxM grid, where N = blessed.Xmax-min+2 and M = blessed.Ymax-min+2:
-            // do same check as above but only add to nuBlessd if tmp == 3
-            //L.Cells = L.Cells.OrderBy(x => x.X).ToList();
-            //int xMin = L.Cells[0].X;
-            //int xMax = L.Cells[L.Cells.Count - 1].X;
-
-            //L.Cells = L.Cells.OrderBy(x => x.Y).ToList();
-            //int yMin = L.Cells[0].Y;
-            //int yMax = L.Cells[L.Cells.Count - 1].Y;
-
-            //for (int i = xMin - 1; i < xMax + 2; i++)
-            //{
-            //    for (int j = yMin - 1; j < yMax + 2; j++)
-            //    {
-            //        // if on a live cell, skip.
-            //        if (L.Mundo[i, j])
-            //        {
-            //            continue;
-            //        }
-            //        // check around the pair in Mundos to see if p should stay alive.
-            //        // account for wrap-around later
-            //        int tmp = 0;
-            //        for (int k = i - 1; k < i + 2; k++)
-            //        {
-            //            for (int l = j - 1; l < j + 2; l++)
-            //            {
-            //                if (k == i && l == j)
-            //                {
-            //                    continue;
-            //                }
-            //                if (L.Mundo[k, l])
-            //                {
-            //                    tmp++;
-            //                }
-            //            }
-            //        }
-            //        if (tmp == 3)
-            //        {
-            //            nuBlessd.Add(new CellPos((UInt16)i, (UInt16)j));
-            //        }
-            //    }
-            //}
-
+            
             // add new cells
             L.Cells.Clear();
             foreach (CellPos p in nuBlessd)

@@ -24,15 +24,30 @@ namespace GameOfLife
     /// it aids in the effort to optimize processing the game of life by effectively
     /// reducing the space of consideration from the size of the grid to a localized
     /// area centered around known live cells.
+    /// 
+    /// 4/26 made into immutable struct and HashSet-friendly
     /// <summary>
-    public class CellLoc
+    public struct CellPos : IEquatable<CellPos>
     {
-        public UInt16 X { get; set; }
-        public UInt16 Y { get; set; }
-        public CellLoc(UInt16 x, UInt16 y)
+        private readonly UInt16 x, y;
+
+        public UInt16 X { get { return x; } }
+        public UInt16 Y { get { return y; } }
+
+        public CellPos(UInt16 x, UInt16 y)
         { 
-            X = x;
-            Y = y;
+            this.x = x;
+            this.y = y;
+        }
+
+        public override int GetHashCode()
+        {
+            return 2*x + 3*y;
+        }
+
+        public bool Equals(CellPos c)
+        {
+            return x == c.x && y == c.y;
         }
     }
 
@@ -42,12 +57,12 @@ namespace GameOfLife
     /// <summary>
     public class Life
     {
-        public List<CellLoc> Pair { get; set; }
-        public bool[,] Mundos { get; set; }
-        public Life(List<CellLoc> p, bool[,] m)
+        public List<CellPos> Cells { get; set; }
+        public bool[,] Mundo { get; set; }
+        public Life(List<CellPos> p, bool[,] m)
         {
-            Pair = p;
-            Mundos = m;
+            Cells = p;
+            Mundo = m;
         }
     }
 
@@ -64,14 +79,14 @@ namespace GameOfLife
             InitializeComponent();
 
             //main grid for life
-            bool[,] mundos = new bool[1000, 1000];
+            bool[,] mundo = new bool[1000, 1000];
             //list of cells marked for life/birth
-            List<CellLoc> blessed = new List<CellLoc>();
+            List<CellPos> blessed = new List<CellPos>();
 
             //populate 15 period cycle thing
-            mundos[502, 500] = true; mundos[501, 501] = true; mundos[502, 501] = true; mundos[503, 501] = true; mundos[500, 502] = true; mundos[501, 502] = true;
-            mundos[502, 502] = true; mundos[503, 502] = true; mundos[504, 502] = true; mundos[500, 509] = true; mundos[501, 509] = true; mundos[502, 509] = true;
-            mundos[503, 509] = true; mundos[504, 509] = true; mundos[501, 510] = true; mundos[502, 510] = true; mundos[503, 510] = true; mundos[502, 511] = true;
+            mundo[502, 500] = true; mundo[501, 501] = true; mundo[502, 501] = true; mundo[503, 501] = true; mundo[500, 502] = true; mundo[501, 502] = true;
+            mundo[502, 502] = true; mundo[503, 502] = true; mundo[504, 502] = true; mundo[500, 509] = true; mundo[501, 509] = true; mundo[502, 509] = true;
+            mundo[503, 509] = true; mundo[504, 509] = true; mundo[501, 510] = true; mundo[502, 510] = true; mundo[503, 510] = true; mundo[502, 511] = true;
 
             //gliders
             //mundos[500, 500] = true; mundos[501, 500] = true; mundos[501, 502] = true; mundos[502, 500] = true; mundos[502, 501] = true;
@@ -82,14 +97,14 @@ namespace GameOfLife
             {
                 for(UInt16 j = 0; j < 1000; j++)
                 {
-                    if (mundos[i, j])
+                    if (mundo[i, j])
                     {
-                        blessed.Add(new CellLoc(i,j));
+                        blessed.Add(new CellPos(i,j));
                     }
                 }
             }
 
-            Life life = new Life(blessed, mundos);
+            Life life = new Life(blessed, mundo);
             
             DispatcherTimer dt = new DispatcherTimer();
             dt.Tick += (sender, e) => { LifeThread(sender, e, ref life); };
@@ -100,7 +115,7 @@ namespace GameOfLife
         // 4/17 main life loop
         private void LifeThread(object o, EventArgs e, ref Life l)
         {
-            redraw(l.Pair);
+            redraw(l.Cells);
             calcNewGen(ref l);
         }
 
@@ -110,21 +125,21 @@ namespace GameOfLife
             // Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
             // Any live cell with two or three live neighbours lives on to the next generation.
             // Any live cell with more than three live neighbours dies, as if by overpopulation.
-            List<CellLoc> nuBlessd = new List<CellLoc>();
-            List<CellLoc> doomed = new List<CellLoc>();
-            foreach (CellLoc p in L.Pair)
+            List<CellPos> nuBlessd = new List<CellPos>();
+            List<CellPos> doomed = new List<CellPos>();
+            foreach (CellPos p in L.Cells)
             {
                 // check around cell p in Mundos to see if p should stay alive.
                 // 4/18 Accounts for toroidal wrap around (for our 1000x1000 grid)
                 int tmp = 0;
-                if (L.Mundos[(p.X - 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundos[(p.X - 1) % 1000, p.Y % 1000]) { tmp++; }
-                if (L.Mundos[(p.X - 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
-                if (L.Mundos[p.X % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundos[p.X % 1000, (p.Y + 1) % 1000]) { tmp++; }
-                if (L.Mundos[(p.X + 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundos[(p.X + 1) % 1000, p.Y % 1000]) { tmp++; }
-                if (L.Mundos[(p.X + 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
+                if (L.Mundo[(p.X - 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
+                if (L.Mundo[(p.X - 1) % 1000, p.Y % 1000]) { tmp++; }
+                if (L.Mundo[(p.X - 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
+                if (L.Mundo[p.X % 1000, (p.Y - 1) % 1000]) { tmp++; }
+                if (L.Mundo[p.X % 1000, (p.Y + 1) % 1000]) { tmp++; }
+                if (L.Mundo[(p.X + 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
+                if (L.Mundo[(p.X + 1) % 1000, p.Y % 1000]) { tmp++; }
+                if (L.Mundo[(p.X + 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
 
                 if (tmp == 2 || tmp == 3)
                 {
@@ -136,72 +151,115 @@ namespace GameOfLife
                 }
             }
 
+            // 4/26 Account for toroidal wrap around and use HashSet to filter duplicates
+            // HashSet for checking which unique empty cells should become alive
+            var potentials = new HashSet<CellPos>();
+            foreach (CellPos p in L.Cells)
+            {
+                //check a 3x3 grid around each cell around p to build the HashSet
+                int iwrap = 0;
+                for (int i = (p.X - 1) % 1000; iwrap < 3; i++)
+                {
+                    int jwrap = 0;
+                    for (int j = (p.Y - 1) % 1000; jwrap < 3; j++)
+                    {
+                        //check around empty/false cell
+                        if (!L.Mundo[i % 1000, j % 1000])
+                        {
+                            // add empty cell to potentials HashSet
+                            potentials.Add(new CellPos((UInt16)(i % 1000), (UInt16)(j % 1000)));
+                        }
+                        jwrap++;
+                    }
+                    iwrap++;
+                }
+            }
+
+            //for each CellPos in potentials, 
+            foreach (CellPos p in potentials)
+            {
+                UInt16 tmp = 0;
+                if (L.Mundo[(p.X - 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
+                if (L.Mundo[(p.X - 1) % 1000, p.Y % 1000]) { tmp++; }
+                if (L.Mundo[(p.X - 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
+                if (L.Mundo[p.X % 1000, (p.Y - 1) % 1000]) { tmp++; }
+                if (L.Mundo[p.X % 1000, (p.Y + 1) % 1000]) { tmp++; }
+                if (L.Mundo[(p.X + 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
+                if (L.Mundo[(p.X + 1) % 1000, p.Y % 1000]) { tmp++; }
+                if (L.Mundo[(p.X + 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
+
+                if (tmp == 3)
+                {
+                    nuBlessd.Add(p);
+                }
+            }
+
             // 4/17 Need to account for toroidal wrap around. 
             // The window size would be stupidly large if I had true cells in opposite corners of the grid.
             // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
             // for every false/dead cell in a NxM grid, where N = blessed.Xmax-min+2 and M = blessed.Ymax-min+2:
             // do same check as above but only add to nuBlessd if tmp == 3
-            L.Pair = L.Pair.OrderBy(x => x.X).ToList();
-            int xMin = L.Pair[0].X;
-            int xMax = L.Pair[L.Pair.Count - 1].X;
+            //L.Cells = L.Cells.OrderBy(x => x.X).ToList();
+            //int xMin = L.Cells[0].X;
+            //int xMax = L.Cells[L.Cells.Count - 1].X;
 
-            L.Pair = L.Pair.OrderBy(x => x.Y).ToList();
-            int yMin = L.Pair[0].Y;
-            int yMax = L.Pair[L.Pair.Count - 1].Y;
+            //L.Cells = L.Cells.OrderBy(x => x.Y).ToList();
+            //int yMin = L.Cells[0].Y;
+            //int yMax = L.Cells[L.Cells.Count - 1].Y;
 
-            for (int i = xMin - 1; i < xMax + 2; i++)
-            {
-                for (int j = yMin - 1; j < yMax + 2; j++)
-                {
-                    // if on a live cell, skip.
-                    if (L.Mundos[i, j])
-                    {
-                        continue;
-                    }
-                    // check around the pair in Mundos to see if p should stay alive.
-                    // account for wrap-around later
-                    int tmp = 0;
-                    for (int k = i - 1; k < i + 2; k++)
-                    {
-                        for (int l = j - 1; l < j + 2; l++)
-                        {
-                            if (k == i && l == j)
-                            {
-                                continue;
-                            }
-                            if (L.Mundos[k, l])
-                            {
-                                tmp++;
-                            }
-                        }
-                    }
-                    if (tmp == 3)
-                    {
-                        nuBlessd.Add(new CellLoc((UInt16)i, (UInt16)j));
-                    }
-                }
-            }
+            //for (int i = xMin - 1; i < xMax + 2; i++)
+            //{
+            //    for (int j = yMin - 1; j < yMax + 2; j++)
+            //    {
+            //        // if on a live cell, skip.
+            //        if (L.Mundo[i, j])
+            //        {
+            //            continue;
+            //        }
+            //        // check around the pair in Mundos to see if p should stay alive.
+            //        // account for wrap-around later
+            //        int tmp = 0;
+            //        for (int k = i - 1; k < i + 2; k++)
+            //        {
+            //            for (int l = j - 1; l < j + 2; l++)
+            //            {
+            //                if (k == i && l == j)
+            //                {
+            //                    continue;
+            //                }
+            //                if (L.Mundo[k, l])
+            //                {
+            //                    tmp++;
+            //                }
+            //            }
+            //        }
+            //        if (tmp == 3)
+            //        {
+            //            nuBlessd.Add(new CellPos((UInt16)i, (UInt16)j));
+            //        }
+            //    }
+            //}
 
             // add new cells
-            L.Pair.Clear();
-            foreach (CellLoc p in nuBlessd)
+            L.Cells.Clear();
+            foreach (CellPos p in nuBlessd)
             {
-                L.Pair.Add(p);
-                L.Mundos[p.X, p.Y] = true;
+                L.Cells.Add(p);
+                L.Mundo[p.X, p.Y] = true;
             }
 
             // kill off cells
-            foreach (CellLoc p in doomed)
+            foreach (CellPos p in doomed)
             {
-                L.Mundos[p.X, p.Y] = false;
+                L.Mundo[p.X, p.Y] = false;
             }
         }
 
         // method to refresh the UI
-        public void redraw(List<CellLoc> blessed)
+        public void redraw(List<CellPos> blessed)
         {
             canvasMundos.Children.Clear();
-            foreach (CellLoc p in blessed)
+            foreach (CellPos p in blessed)
             {
                 AddPixel(p.X, p.Y);
             }

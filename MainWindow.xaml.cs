@@ -135,14 +135,14 @@ namespace GameOfLife
                 // check around cell p in Mundos to see if p should stay alive.
                 // 4/18 Accounts for toroidal wrap around (for our 1000x1000 grid)
                 int tmp = 0;
-                if (L.Mundo[(p.X - 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundo[(p.X - 1) % 1000, p.Y % 1000]) { tmp++; }
-                if (L.Mundo[(p.X - 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
-                if (L.Mundo[p.X % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundo[p.X % 1000, (p.Y + 1) % 1000]) { tmp++; }
-                if (L.Mundo[(p.X + 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundo[(p.X + 1) % 1000, p.Y % 1000]) { tmp++; }
-                if (L.Mundo[(p.X + 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1,1000), mod(p.Y - 1,1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
 
                 if (tmp == 2 || tmp == 3)
                 {
@@ -155,16 +155,16 @@ namespace GameOfLife
 
                 //check a 3x3 grid around each cell around p to build the HashSet of empty cells
                 int iwrap = 0;
-                for (int i = (p.X - 1) % 1000; iwrap < 3; i++)
+                for (int i = mod(p.X - 1, 1000); iwrap < 3; i++)
                 {
                     int jwrap = 0;
-                    for (int j = (p.Y - 1) % 1000; jwrap < 3; j++)
+                    for (int j = mod(p.Y - 1, 1000); jwrap < 3; j++)
                     {
                         //check around empty/false cell
-                        if (!L.Mundo[i % 1000, j % 1000])
+                        if (!L.Mundo[mod(i, 1000), mod(j, 1000)])
                         {
                             // add empty cell to potentials HashSet
-                            potentials.Add(new CellPos((UInt16)(i % 1000), (UInt16)(j % 1000)));
+                            potentials.Add(new CellPos((UInt16)mod(i, 1000), (UInt16)mod(j, 1000)));
                         }
                         jwrap++;
                     }
@@ -176,14 +176,14 @@ namespace GameOfLife
             foreach (CellPos p in potentials)
             {
                 UInt16 tmp = 0;
-                if (L.Mundo[(p.X - 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundo[(p.X - 1) % 1000, p.Y % 1000]) { tmp++; }
-                if (L.Mundo[(p.X - 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
-                if (L.Mundo[p.X % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundo[p.X % 1000, (p.Y + 1) % 1000]) { tmp++; }
-                if (L.Mundo[(p.X + 1) % 1000, (p.Y - 1) % 1000]) { tmp++; }
-                if (L.Mundo[(p.X + 1) % 1000, p.Y % 1000]) { tmp++; }
-                if (L.Mundo[(p.X + 1) % 1000, (p.Y + 1) % 1000]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
 
                 if (tmp == 3)
                 {
@@ -204,6 +204,13 @@ namespace GameOfLife
             {
                 L.Mundo[p.X, p.Y] = false;
             }
+        }
+
+        // thanks to ShreevatsaR from Stack Overflow
+        public int mod(int a, int b)
+        {
+            int r = a % b;
+            return r<0 ? r+b : r;
         }
 
         // method to refresh the UI

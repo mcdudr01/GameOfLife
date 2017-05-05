@@ -79,27 +79,37 @@ namespace GameOfLife
             InitializeComponent();
 
             //main grid for life
-            bool[,] mundo = new bool[1000, 1000];
+            bool[,] mundo = new bool[100, 100];
             //list of cells marked for life/birth
             List<CellPos> blessed = new List<CellPos>();
+            Random r = new Random();
 
             //populate 15 period cycle thing
-            mundo[502, 500] = true; mundo[501, 501] = true; mundo[502, 501] = true; mundo[503, 501] = true; mundo[500, 502] = true; mundo[501, 502] = true;
-            mundo[502, 502] = true; mundo[503, 502] = true; mundo[504, 502] = true; mundo[500, 509] = true; mundo[501, 509] = true; mundo[502, 509] = true;
-            mundo[503, 509] = true; mundo[504, 509] = true; mundo[501, 510] = true; mundo[502, 510] = true; mundo[503, 510] = true; mundo[502, 511] = true;
+            //mundo[502, 500] = true; mundo[501, 501] = true; mundo[502, 501] = true; mundo[503, 501] = true; mundo[500, 502] = true; mundo[501, 502] = true;
+            //mundo[502, 502] = true; mundo[503, 502] = true; mundo[504, 502] = true; mundo[500, 509] = true; mundo[501, 509] = true; mundo[502, 509] = true;
+            //mundo[503, 509] = true; mundo[504, 509] = true; mundo[501, 510] = true; mundo[502, 510] = true; mundo[503, 510] = true; mundo[502, 511] = true;
 
-            //gliders
-            //mundo[500, 500] = true; mundo[501, 500] = true; mundo[501, 502] = true; mundo[502, 500] = true; mundo[502, 501] = true;
-            //mundo[990, 990] = true; mundo[991, 990] = true; mundo[991, 992] = true; mundo[992, 990] = true; mundo[992, 991] = true;
+            //gosper's glider gun
+            mundo[50, 50] = true; mundo[51, 50] = true; mundo[50, 51] = true; mundo[51, 51] = true;
+            mundo[60, 50] = true; mundo[60, 51] = true; mundo[60, 52] = true; mundo[61, 49] = true; mundo[61, 53] = true; mundo[62, 48] = true; mundo[62, 54] = true; mundo[63, 48] = true; mundo[63, 54] = true;
+            mundo[64, 51] = true; mundo[65, 49] = true; mundo[65, 53] = true; mundo[66, 50] = true; mundo[66, 51] = true; mundo[66, 52] = true; mundo[67, 51] = true;
+            mundo[70, 48] = true; mundo[70, 49] = true; mundo[70, 50] = true; mundo[71, 48] = true; mundo[71, 49] = true; mundo[71, 50] = true; mundo[72, 47] = true; mundo[72, 51] = true;
+            mundo[74, 46] = true; mundo[74, 47] = true; mundo[74, 51] = true; mundo[74, 52] = true;
+            mundo[84, 48] = true; mundo[84, 49] = true; mundo[85, 48] = true; mundo[85, 49] = true;
 
-            //populate blessed
-            for (UInt16 i = 0; i < 1000; i++)
+            //populate grid randomly and add live cells to blessed
+            for (UInt16 i = 0; i < 100; i++)
             {
-                for(UInt16 j = 0; j < 1000; j++)
+                for(UInt16 j = 0; j < 100; j++)
                 {
+                    //if (r.Next(0, 50) == 1)
+                    //{
+                    //    mundo[i, j] = true;
+                    //    blessed.Add(new CellPos(i, j));
+                    //}
                     if (mundo[i, j])
                     {
-                        blessed.Add(new CellPos(i,j));
+                        blessed.Add(new CellPos(i, j));
                     }
                 }
             }
@@ -130,19 +140,38 @@ namespace GameOfLife
             var potentials = new HashSet<CellPos>();
             List<CellPos> nuBlessd = new List<CellPos>();
             List<CellPos> doomed = new List<CellPos>();
+            int size = L.Mundo.GetLength(0);
+
+            // If all cells die, repopulate
+            if (L.Cells.Count == 0)
+            {
+                Random r = new Random();
+                for (UInt16 i = 0; i < size; i++)
+                {
+                    for (UInt16 j = 0; j < size; j++)
+                    {
+                        if (r.Next(0, 50) == 1)
+                        {
+                            L.Mundo[i, j] = true;
+                            L.Cells.Add(new CellPos(i, j));
+                        }
+                    }
+                }
+            }
+
             foreach (CellPos p in L.Cells)
             {
                 // check around cell p in Mundos to see if p should stay alive.
                 // 4/18 Accounts for toroidal wrap around (for our 1000x1000 grid)
                 int tmp = 0;
-                if (L.Mundo[mod(p.X - 1,1000), mod(p.Y - 1,1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, size), mod(p.Y - 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, size), mod(p.Y, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, size), mod(p.Y + 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X, size), mod(p.Y - 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X, size), mod(p.Y + 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, size), mod(p.Y - 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, size), mod(p.Y, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, size), mod(p.Y + 1, size)]) { tmp++; }
 
                 if (tmp == 2 || tmp == 3)
                 {
@@ -155,16 +184,16 @@ namespace GameOfLife
 
                 //check a 3x3 grid around each cell around p to build the HashSet of empty cells
                 int iwrap = 0;
-                for (int i = mod(p.X - 1, 1000); iwrap < 3; i++)
+                for (int i = mod(p.X - 1, size); iwrap < 3; i++)
                 {
                     int jwrap = 0;
-                    for (int j = mod(p.Y - 1, 1000); jwrap < 3; j++)
+                    for (int j = mod(p.Y - 1, size); jwrap < 3; j++)
                     {
                         //check around empty/false cell
-                        if (!L.Mundo[mod(i, 1000), mod(j, 1000)])
+                        if (!L.Mundo[mod(i, size), mod(j, size)])
                         {
                             // add empty cell to potentials HashSet
-                            potentials.Add(new CellPos((UInt16)mod(i, 1000), (UInt16)mod(j, 1000)));
+                            potentials.Add(new CellPos((UInt16)mod(i, size), (UInt16)mod(j, size)));
                         }
                         jwrap++;
                     }
@@ -176,14 +205,14 @@ namespace GameOfLife
             foreach (CellPos p in potentials)
             {
                 UInt16 tmp = 0;
-                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X - 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y - 1, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y, 1000)]) { tmp++; }
-                if (L.Mundo[mod(p.X + 1, 1000), mod(p.Y + 1, 1000)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, size), mod(p.Y - 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, size), mod(p.Y, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X - 1, size), mod(p.Y + 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X, size), mod(p.Y - 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X, size), mod(p.Y + 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, size), mod(p.Y - 1, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, size), mod(p.Y, size)]) { tmp++; }
+                if (L.Mundo[mod(p.X + 1, size), mod(p.Y + 1, size)]) { tmp++; }
 
                 if (tmp == 3)
                 {

@@ -13,7 +13,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <!-- <Button Grid.Column="0" x:Name="button" Content="Button" Click="button_Click" /> -->
-        <Canvas Grid.Column="0" Name="canvasMundos" Height="1000" Width="1000" Background="Black">
+        <Canvas Grid.Column="0" Name="canvasMundos" Height="100" Width="100" Background="Black">
         </Canvas>
     </Grid>
 </Window>
